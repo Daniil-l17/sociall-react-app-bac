@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(uuid()) @map("_id") @db.Uuid
+  email       String    @unique
+  password    String
+  name        String?
+  avatarUrl   String?
+  dateOfBirth DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bio         String?
+  location    String?
+  posts       Post[]
+  likes       Like[]
+  comments    Comment[]
+  followers   Follows[] @relation("following")
+  following   Follows[] @relation("follower")
+}
+
+model Follows {
+  id          String @id @default(uuid()) @map("_id") @db.Uuid
+  follower    User   @relation("follower", fields: [followerId], references: [id])
+  followerId  String @db.Uuid
+  following   User   @relation("following", fields: [followingId], references: [id])
+  followingId String @db.Uuid
+}
+
+model Post {
+  id        String    @id @default(uuid()) @map("_id") @db.Uuid
+  content   String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String    @db.Uuid
+  likes     Like[]
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+}
+
+model Like {
+  id     String @id @default(uuid()) @map("_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.Uuid
+  post   Post   @relation(fields: [postId], references: [id])
+  postId String @db.Uuid
+}
+
+model Comment {
+  id      String @id @default(uuid()) @map("_id") @db.Uuid
+  content String
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @db.Uuid
+  post    Post   @relation(fields: [postId], references: [id])
+  postId  String @db.Uuid
+}
